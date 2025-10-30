@@ -2583,8 +2583,6 @@ moqui.webrootVue.component('m-menu-nav-item', {
     props: {
         subscreens: { type: Array, default: () => [] },
         indentLevel: { type: Number, default: 0 },
-        parentPath: { type: String, default: null },
-        parentName: { type: String, default: null },
     },
     template:
     '<q-list dense padding>' +
@@ -2602,13 +2600,13 @@ moqui.webrootVue.component('m-menu-nav-item', {
 
     computed: {
         filteredSubscreens: function() {
-                if (!this.subscreens || this.subscreens.length === 0) return [];
-                var subscreens = this.subscreens;
+            if (!this.subscreens || this.subscreens.length === 0) return [];
 
-                // --- 1. GRANDCHILD (or CHILD) FILTER ---
+            // --- 2. DE-DUPLICATION (Only at Root) ---
+            if (this.indentLevel === 0) {
                 // Build a Set of all items that are already in a subscreen list
                 var childPaths = new Set();
-                subscreens.forEach(function(item) {
+                this.subscreens.forEach(function(item) {
                     if (item.subscreens && item.subscreens.length > 0) {
                         item.subscreens.forEach(function(child) {
                             if (child.pathWithParams) childPaths.add(child.pathWithParams);
@@ -2618,27 +2616,19 @@ moqui.webrootVue.component('m-menu-nav-item', {
                 });
 
                 // Filter the main list: keep an item ONLY if it's NOT in the child set.
-                var primarySubscreens = subscreens.filter(function(sub) {
+                // This removes the duplicate "AppList" from the root.
+                return this.subscreens.filter(function(sub) {
                     if (childPaths.has(sub.pathWithParams)) return false;
                     if (childPaths.has(sub.name)) return false;
                     return true;
                 });
-                // On load, this will filter out "AppList" [1] because it's in "Applications" [0].subscreens
+            }
 
-                // --- 2. SELF-FILTER (for recursion) ---
-                if (!this.parentPath && !this.parentName) {
-                    return primarySubscreens; // Root level, no self-filter
-                }
-
-                var parentPath = this.parentPath;
-                var parentName = this.parentName;
-
-                return primarySubscreens.filter(function(sub) {
-                    if (sub.pathWithParams) return sub.pathWithParams !== parentPath;
-                    if (sub.name) return sub.name !== parentName;
-                    return true;
-                });
-        },
+            // --- 3. SUBMENUS (No Filter) ---
+            // For all submenus (indentLevel > 0), return the list as-is.
+            // This will correctly show "dashboard" under "Tools".
+            return this.subscreens;
+        }
     },
 });
 
@@ -2649,7 +2639,7 @@ moqui.webrootVue.component('m-menu-subscreen-item', {
         indentLevel: {
             type: Number,
             default: 0.3,
-            }
+            },
     },
     data: function() {
         var defaultExpanded = (this.indentLevel === 0) ? true : this.subscreen.active;
@@ -2674,9 +2664,6 @@ moqui.webrootVue.component('m-menu-subscreen-item', {
         '<m-menu-nav-item v-if="isExpanded && subscreen.subscreens && subscreen.subscreens.length > 0" ' +
             ':subscreens="subscreen.subscreens" ' +
             ':indent-level="indentLevel + 1" ' +
-            ':parent-path="subscreen.pathWithParams" ' +
-            // 1. ADD THIS PROP:
-            ':parent-name="subscreen.name">' +
         '</m-menu-nav-item>' +
 
     '</q-expansion-item>',
