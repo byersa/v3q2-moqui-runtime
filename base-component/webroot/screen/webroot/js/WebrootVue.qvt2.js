@@ -2511,7 +2511,8 @@ moqui.webrootVue.component('m-subscreens-tabs', {
 moqui.webrootVue.component('m-subscreens-active', {
     name: "mSubscreensActive",
     data: function() { return { activeComponent:moqui.EmptyComponent, pathIndex:-1, pathName:null } },
-    template: '<router-view v-slot="{ Component }"><component :is="Component" style="height:100%;width:100%;"></component></router-view>',
+    template: '<router-view v-slot="{ Component, route }"><component :is="Component" :key="route.path" ></component></router-view>',
+
     methods: { 
         loadActive: function() {
             var vm = this;
@@ -2579,49 +2580,112 @@ moqui.webrootVue.component('m-subscreens-active', {
 
 moqui.webrootVue.component('m-menu-nav-item', {
     name: "mMenuNavItem",
-    props: { menuIndex:Number },
-    template:
-    '<q-expansion-item v-if="navMenuItem && navMenuItem.subscreens && navMenuItem.subscreens.length" :value="true" :content-inset-level="0.3"' +
-            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go" @created="logPath">' +
-        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
-        '<template v-slot:default><m-menu-subscreen-item v-for="(subscreen, ssIndex) in navMenuItem.subscreens" :key="subscreen.name" :menu-index="menuIndex" :subscreen-index="ssIndex"></m-menu-subscreen-item></template>' +
-    '</q-expansion-item>' +
-    '<q-expansion-item v-else-if="navMenuItem && navMenuItem.savedFinds && navMenuItem.savedFinds.length" :value="true" :content-inset-level="0.3"' +
-            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
-        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
-        '<template v-slot:default><q-expansion-item v-for="(savedFind, ssIndex) in navMenuItem.savedFinds" :key="savedFind.name"' +
-                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="chevron_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
-            '<template v-slot:header><m-menu-item-content :menu-item="savedFind" :active="savedFind.active"></m-menu-item-content></template>' +
-        '</q-expansion-item></template>' +
-    '</q-expansion-item>' +
-    '<q-expansion-item v-else-if="menuIndex < (navMenuLength - 1)" :value="true" :content-inset-level="0.3"' +
-            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
-        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
-        '<template v-slot:default><m-menu-nav-item :menu-index="menuIndex + 1"></m-menu-nav-item></template>' +
-    '</q-expansion-item>' +
-    '<q-expansion-item v-else-if="navMenuItem" :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="navMenuItem.pathWithParams" @input="go">' +
-        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
-    '</q-expansion-item>',
-    methods: {
-        go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
-        goPath: function goPath(path) { this.$root.setUrl(path); },
-        logPath: function logPath() { console.log('navMenuItem.pathWithParams:', this.navMenuItem.pathWithParams); }
+    props: {
+        subscreens: { type: Array, default: () => [] },
+        indentLevel: { type: Number, default: 0 },
+        parentPath: { type: String, default: null },
+        parentName: { type: String, default: null },
     },
+    template:
+    '<q-list dense padding>' +
+            // 3. Loop over the computed 'filteredSubscreens'
+            '<m-menu-subscreen-item v-for="subscreenItem in filteredSubscreens" ' +
+                ':key="subscreenItem.pathWithParams || subscreenItem.name" ' +
+                // 4. REMOVE menuIndex prop
+                // ':menu-index="menuIndex" ' +
+                ':subscreen="subscreenItem" ' +
+                ':indent-level="indentLevel">' +
+                // 1. ADD THIS PROP:
+                ':parent-name="subscreen.name">' +
+            '</m-menu-subscreen-item>' +
+        '</q-list>',
+
     computed: {
-        navMenuItem: function() { return this.$root.navMenuList[this.menuIndex]; },
-        navMenuLength: function() { return this.$root.navMenuList.length; }
-    }
+        filteredSubscreens: function() {
+                if (!this.subscreens || this.subscreens.length === 0) return [];
+                var subscreens = this.subscreens;
+
+                // --- 1. GRANDCHILD (or CHILD) FILTER ---
+                // Build a Set of all items that are already in a subscreen list
+                var childPaths = new Set();
+                subscreens.forEach(function(item) {
+                    if (item.subscreens && item.subscreens.length > 0) {
+                        item.subscreens.forEach(function(child) {
+                            if (child.pathWithParams) childPaths.add(child.pathWithParams);
+                            if (child.name) childPaths.add(child.name);
+                        });
+                    }
+                });
+
+                // Filter the main list: keep an item ONLY if it's NOT in the child set.
+                var primarySubscreens = subscreens.filter(function(sub) {
+                    if (childPaths.has(sub.pathWithParams)) return false;
+                    if (childPaths.has(sub.name)) return false;
+                    return true;
+                });
+                // On load, this will filter out "AppList" [1] because it's in "Applications" [0].subscreens
+
+                // --- 2. SELF-FILTER (for recursion) ---
+                if (!this.parentPath && !this.parentName) {
+                    return primarySubscreens; // Root level, no self-filter
+                }
+
+                var parentPath = this.parentPath;
+                var parentName = this.parentName;
+
+                return primarySubscreens.filter(function(sub) {
+                    if (sub.pathWithParams) return sub.pathWithParams !== parentPath;
+                    if (sub.name) return sub.name !== parentName;
+                    return true;
+                });
+        },
+    },
 });
+
 moqui.webrootVue.component('m-menu-subscreen-item', {
     name: "mMenuSubscreenItem",
-    props: { menuIndex:Number, subscreenIndex:Number },
+    props: {
+        subscreen: Object,
+        indentLevel: {
+            type: Number,
+            default: 0.3,
+            }
+    },
+    data: function() {
+        var defaultExpanded = (this.indentLevel === 0) ? true : this.subscreen.active;
+        return {
+            isExpanded: defaultExpanded
+        }
+    },
     template:
-    '<m-menu-nav-item v-if="subscreen.active" :menu-index="menuIndex + 1"></m-menu-nav-item>' +
-    '<q-expansion-item v-else :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="subscreen.pathWithParams" @input="go">' +
-        '<template v-slot:header><m-menu-item-content :menu-item="subscreen"></m-menu-item-content></template>' +
+    // --- CHANGE IS HERE ---
+    // Change 'inset-level' to 'header-inset-level'
+    '<q-expansion-item   v-model="isExpanded" ' +
+        'switch-toggle-side dense dense-toggle ' +
+        'expand-icon="chevron_right" ' +
+        'expanded-icon="expand_more" ' +
+        ':header-inset-level="indentLevel">' + // <-- THE FIX
+
+        '<template v-slot:header>' +
+            '<m-menu-item-content v-if="!subscreen.active" :menu-item="subscreen" @click.native.prevent="go"></m-menu-item-content>' +
+            '<m-menu-item-content v-else :menu-item="subscreen"></m-menu-item-content>' +
+        '</template>' +
+
+        '<m-menu-nav-item v-if="isExpanded && subscreen.subscreens && subscreen.subscreens.length > 0" ' +
+            ':subscreens="subscreen.subscreens" ' +
+            ':indent-level="indentLevel + 1" ' +
+            ':parent-path="subscreen.pathWithParams" ' +
+            // 1. ADD THIS PROP:
+            ':parent-name="subscreen.name">' +
+        '</m-menu-nav-item>' +
+
     '</q-expansion-item>',
-    methods: { go: function go() { this.$root.setUrl(this.subscreen.pathWithParams); } },
-    computed: { subscreen: function() { return this.$root.navMenuList[this.menuIndex].subscreens[this.subscreenIndex]; } }
+
+    methods: {
+        go: function go() {
+            window.location.href = this.subscreen.pathWithParams;
+        }
+    },
 });
 moqui.webrootVue.component('m-menu-item-content', {
     name: "mMenuItemContent",
