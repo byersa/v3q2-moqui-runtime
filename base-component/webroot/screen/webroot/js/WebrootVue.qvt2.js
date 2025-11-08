@@ -2578,6 +2578,105 @@ moqui.webrootVue.component('m-subscreens-active', {
     }
 });
 
+moqui.webrootVue.component('m-menu-tree', {
+    name: "mMenuTree",
+    props: {
+        indentLevel: { type: Number, default: 0 },
+    },
+    template:
+    `<q-tree
+        :nodes="menuNodes"
+        ref="menuTree"
+        node-key="name"
+        label-key="title"
+        children-key="subscreens"
+        @lazy-load="onLazyLoad"
+        >
+        </q-tree>
+    `,
+    watch: {
+            /**
+             * Watch for the menuNodes data to change.
+             */
+        menuNodes(newNodeValue) {
+                // Check if we have new nodes to render
+                if (newNodeValue && newNodeValue.length > 0) {
+                    // 'this.$nextTick' waits for Vue to finish updating the DOM
+                    this.$nextTick(() => {
+                        // Now this.$refs.menuTree is guaranteed to exist
+                        // and be updated with the new nodes.
+                        if (this.$refs.menuTree) {
+                            this.$refs.menuTree.expandAll();
+                        }
+                    });
+                }
+        },
+    },
+    computed: {
+        menuNodes: function() {
+            let nds = [];
+            if ( this.$root.navMenuList &&  this.$root.navMenuList.length ) {
+                nds = [ this.$root.navMenuList[0] ];
+                if (this.$root.navMenuList[1] ) {
+                    this.buildSubscreens(this.$root.navMenuList[0], 1 );
+                }
+            }
+            return nds;
+        },
+        navMenuLength: function() { return this.$root.navMenuList.length; },
+        navMenuList: function() { return this.$root.navMenuList; },
+    },
+    methods: {
+        buildSubscreens: function(parentScreen, menuIndex, ) {
+            parentScreen.subscreens.forEach( (scrn) => scrn.lazy = true);
+            let screen = this.$root.navMenuList[menuIndex];
+            let parentSubscreen = parentScreen.subscreens.find((scrn) =>
+                                      scrn.name === screen.name
+                                      );
+            parentSubscreen.subscreens = screen.subscreens;
+            let nextMenuIndex = menuIndex + 1;
+            if (this.$root.navMenuList[nextMenuIndex] ) {
+                this.buildSubscreens(this.$root.navMenuList[menuIndex], nextMenuIndex );
+            }
+            return;
+        },
+        onLazyLoad ({ node, key, done, fail }) {
+            this.$root.setUrl(node.pathWithParams);
+            done();
+            return;
+        },
+        go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
+        goPath: function goPath(path) { this.$root.setUrl(path); }
+    },
+    /*
+    '<q-expansion-item v-if="navMenuItem && navMenuItem.subscreens && navMenuItem.subscreens.length" :value="true" :content-inset-level="0.3"' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+        '<template v-slot:default><m-menu-subscreen-item v-for="(subscreen, ssIndex) in navMenuItem.subscreens" :key="subscreen.name" :menu-index="menuIndex" :subscreen-index="ssIndex"></m-menu-subscreen-item></template>' +
+    '</q-expansion-item>' +
+    '<q-expansion-item v-else-if="navMenuItem && navMenuItem.savedFinds && navMenuItem.savedFinds.length" :value="true" :content-inset-level="0.3"' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+        '<template v-slot:default><q-expansion-item v-for="(savedFind, ssIndex) in navMenuItem.savedFinds" :key="savedFind.name"' +
+                ' :value="false" switch-toggle-side dense dense-toggle expand-icon="chevron_right" :to="savedFind.pathWithParams" @input="goPath(savedFind.pathWithParams)">' +
+            '<template v-slot:header><m-menu-item-content :menu-item="savedFind" :active="savedFind.active"/></template>' +
+        '</q-expansion-item></template>' +
+    '</q-expansion-item>' +
+    '<q-expansion-item v-else-if="menuIndex < (navMenuLength - 1)" :value="true" :content-inset-level="0.3"' +
+            ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+        '<template v-slot:default><m-menu-nav-item :menu-index="menuIndex + 1"></m-menu-nav-item></template>' +
+    '</q-expansion-item>' +
+    '<q-expansion-item v-else-if="navMenuItem" :value="false" switch-toggle-side dense dense-toggle expand-icon="arrow_right" :to="navMenuItem.pathWithParams" @input="go">' +
+        '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +
+    '</q-expansion-item>',
+    methods: {
+        go: function go() { this.$root.setUrl(this.navMenuItem.pathWithParams); },
+        goPath: function goPath(path) { this.$root.setUrl(path); }
+    },
+    */
+});
+
 moqui.webrootVue.component('m-menu-nav-item', {
     name: "mMenuNavItem",
     props: {

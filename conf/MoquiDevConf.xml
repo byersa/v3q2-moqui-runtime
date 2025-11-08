@@ -84,6 +84,9 @@
 
     <entity-facade query-stats="true">
         <!-- add datasource elements here to configure databases -->
+        <datasource group-name="transactional" database-conf-name="postgres" schema-name="public" startup-add-missing="true" runtime-add-missing="false">
+            <inline-jdbc jdbc-uri="jdbc:postgresql://localhost:5434/agenda" jdbc-username="ofbiz" jdbc-password="heber"/>
+        </datasource>
     </entity-facade>
 
     <repository-list>

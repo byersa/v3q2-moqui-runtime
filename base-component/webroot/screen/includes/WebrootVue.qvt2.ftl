@@ -163,13 +163,16 @@ along with this software (see the LICENSE.md file). If not, see
 
         <q-drawer v-model="leftOpen" side="left" bordered><#-- no 'overlay', for those who want to keep it open better to compress main area -->
             <q-btn dense flat icon="menu" @click="toggleLeftOpen()" class="lt-sm"></q-btn>
+            <m-menu-tree></m-menu-tree>
+            <#--
             <q-list dense padding>
-            <m-menu-nav-item
+                <m-menu-nav-item
                         v-if="$root.navMenuList && $root.navMenuList.length > 0"
                         :subscreens="$root.navMenuList"
                         :indent-level="0">
                     </m-menu-nav-item>
             </q-list>
+            -->
         </q-drawer>
 
         <q-page-container class="q-ma-sm"><q-page>

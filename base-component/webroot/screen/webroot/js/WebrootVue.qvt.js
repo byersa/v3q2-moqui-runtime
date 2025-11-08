@@ -2082,6 +2082,7 @@ Vue.component('m-menu-nav-item', {
     name: "mMenuNavItem",
     props: { menuIndex:Number },
     template:
+    '<q-tree ' +
     '<q-expansion-item v-if="navMenuItem && navMenuItem.subscreens && navMenuItem.subscreens.length" :value="true" :content-inset-level="0.3"' +
             ' switch-toggle-side dense dense-toggle expanded-icon="arrow_drop_down" :to="navMenuItem.pathWithParams" @input="go">' +
         '<template v-slot:header><m-menu-item-content :menu-item="navMenuItem" active></m-menu-item-content></template>' +

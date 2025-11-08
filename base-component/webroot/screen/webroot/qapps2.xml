@@ -55,7 +55,7 @@ along with this software (see the LICENSE.md file). If not, see
             // http-vue-loader
             footer_scripts.add('/js/http-vue-loader/httpVueLoader.js')
             // Quasar
-            footer_scripts.add("/libs/quasar/quasar.umd.prod.js")
+            footer_scripts.add("/libs/quasar/quasar.umd.js")
             // vue3-sfc-loader
             footer_scripts.add('/libs/vue3-sfc-loader/vue3-sfc-loader.min.js')
             // routes.js
