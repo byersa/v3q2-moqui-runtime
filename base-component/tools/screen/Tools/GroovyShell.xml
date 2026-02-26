@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-This software is in the public domain under CC0 1.0 Universal plus a 
-Grant of Patent License.
-
-To the extent possible under law, the author(s) have dedicated all
-copyright and related and neighboring rights to this software to the
-public domain worldwide. This software is distributed without any
-warranty.
-
-You should have received a copy of the CC0 Public Domain Dedication
-along with this software (see the LICENSE.md file). If not, see
-<http://creativecommons.org/publicdomain/zero/1.0/>.
--->
 <screen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/xml-screen-3.xsd"
-        default-menu-index="3">
+        default-menu-title="Groovy Shell" default-menu-index="10">
 
     <actions>
         <if condition="!ec.user.hasPermission('GROOVY_SHELL_WEB')">
@@ -21,21 +8,21 @@ along with this software (see the LICENSE.md file). If not, see
         <if condition="!sri.getScreenUrlInfo().isPermitted(ec, null, org.moqui.context.ArtifactExecutionInfo.AUTHZA_ALL)">
             <return error="true" message="User must be authorized for all actions on this screen"/></if>
     </actions>
+
     <widgets>
         <text type="html,vuet,qvt,qvt2"><![CDATA[
-            <div class="text-danger">Be careful here, you can break many things. <a href="https://groovy-lang.org/groovysh.html" target="_blank">A groovysh reference is available here.</a></div>
-            <div id="terminal" style="height:100%;"></div>
+            <div class="text-danger q-ma-sm">
+                <strong>Be careful:</strong> You are executing code directly on the server. 
+                <a href="https://groovy-lang.org/groovysh.html" target="_blank" class="text-primary">Groovysh reference</a>
+            </div>
+            <div id="terminal" style="height: 600px; background: #000; border-radius: 4px; overflow: hidden;"></div>
 
             <script>
+                // This initializes the modern XTerm.js terminal provided in the vue3quasar2 branch
                 let groovyTerminal = new Terminal({
-                    cols: ${cols!"100"},
-                    rows: ${rows!"40"},
-                    fontSize: ${fontSize!"12"},
                     cursorBlink: true,
-                    cursorStyle: "bar", // null | 'block' | 'underline' | 'bar'
-                    scrollback: 1000,
-                    tabStopWidth: 4,
-                    convertEol: false
+                    theme: { background: '#1e1e1e' },
+                    fontSize: 14
                 });
                 let inputBuffer = [];
                 let cursorPos = 0;

@@ -2251,3 +2251,29 @@ a => A, d => D, y => Y
         <#t>${sri.getFieldValueString(widgetNode)}
     </#if><#t>
 </#macro>
+
+<#macro "screen-layout" id="" style="">
+    <q-layout view="hHh LpR fFf" class="full-height" <#if id?has_content>id="${id}"</#if> >
+        <#recurse>
+    </q-layout>
+</#macro>
+
+<#macro "screen-header" id="" style="">
+    <q-header class="sh-abstract-color ${style!}"  <#if id?has_content>id="${id}"</#if> >
+        <#recurse>
+    </q-header>
+</#macro>
+
+<#macro "screen-page" id="" style="">
+    <q-page-container class="full-height" <#if id?has_content>id="${id}"</#if> >
+        <q-page class="sh-page full-height ${style!}" id="page_root">
+        <#recurse>
+        </q-page>
+    </q-page-container>
+</#macro>
+
+<#macro "screen-footer" id="" style="">
+    <q-footer class="${style!}" <#if id?has_content>id="${id}"</#if> >
+        <#recurse>
+    </q-footer>
+</#macro>

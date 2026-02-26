@@ -12,6 +12,7 @@
  * <http://creativecommons.org/publicdomain/zero/1.0/>.
  */
 plugins {
+    id 'java'
     id "org.gradlewebtools.minify" version "2.1.1"
 }
 
@@ -220,7 +221,7 @@ task combineVuetJs {
     }
 }
 
-task build {
+build {
     dependsOn downloadFiles
 
     dependsOn minifyJsDir
@@ -228,9 +229,31 @@ task build {
     dependsOn combineBaseJs
     dependsOn combineVuetJs
 }
-task clean { doLast {
+clean.doLast {
     delete fileTree(dir: "${webrootPath}/js", include: '*.min.js')
-}}
+}
 task cleanAll { doLast {
     delete file(libsPath)
 } }
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Framework core link
+    implementation project(':framework')
+
+    // Groovy Shell Terminal (xterm.js)
+    implementation 'org.webjars.npm:xterm:5.3.0'
+    implementation 'org.webjars.npm:xterm-addon-fit:0.8.0'
+
+    // Vue 3 & Quasar 2 Infrastructure
+    implementation 'org.webjars.npm:vue:3.3.11'
+    implementation 'org.webjars.npm:quasar:2.14.2'
+    implementation 'org.webjars.npm:vue-router:4.2.5'
+    
+    // UI Helpers (Icons and Loaders)
+    implementation 'org.webjars.npm:http-vue3-loader:1.0.1'
+    implementation 'org.webjars.npm:material-design-icons-iconfont:6.7.0'
+}

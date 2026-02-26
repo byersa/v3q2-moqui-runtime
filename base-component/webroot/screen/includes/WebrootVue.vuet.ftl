@@ -39,14 +39,14 @@ along with this software (see the LICENSE.md file). If not, see
         </header>
         <div id="navbar-buttons" class="collapse navbar-collapse navbar-ex1-collapse">
             <ul id="dynamic-menus" class="nav navbar-nav">
-                <li v-for="(navMenuItem, menuIndex) in navMenuList" class="dropdown">
+                <li v-for="(navMenuItem, menuIndex) in navMenuList" :key="menuIndex" class="dropdown">
                     <template v-if="menuIndex < (navMenuList.length - 1)">
                         <m-link v-if="navMenuItem.hasTabMenu" :href="getNavHref(menuIndex)">{{navMenuItem.title}} <i class="fa fa-chevron-right"></i></m-link>
                         <template v-else-if="navMenuItem.subscreens && navMenuItem.subscreens.length > 1">
                             <#-- use chevron-right if has subscreens menu, thicker arrow to distinguish -->
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{navMenuItem.title}} <i class="fa fa-chevron-right"></i></a>
                             <ul class="dropdown-menu">
-                                <li v-for="subscreen in navMenuItem.subscreens" :class="{active:subscreen.active}">
+                                <li v-for="subscreen in navMenuItem.subscreens" :key="subscreen.name" :class="{active:subscreen.active}">
                                     <m-link :href="subscreen.pathWithParams">
                                         <template v-if="subscreen.image">
                                             <i v-if="subscreen.imageType === 'icon'" :class="subscreen.image" style="padding-right: 4px;"></i>
@@ -71,7 +71,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <a id="history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Screen History")}">
                     <i class="fa fa-bars"></i></a>
                 <ul class="dropdown-menu">
-                    <li v-for="histItem in navHistoryList"><m-link :href="histItem.pathWithParams">
+                    <li v-for="histItem in navHistoryList" :key="histItem.pathWithParams"><m-link :href="histItem.pathWithParams">
                         <template v-if="histItem.image">
                             <i v-if="histItem.imageType === 'icon'" :class="histItem.image" style="padding-right: 8px;"></i>
                             <img v-else :src="histItem.image" :alt="histItem.title" width="18" style="padding-right: 4px;">
@@ -90,7 +90,7 @@ along with this software (see the LICENSE.md file). If not, see
                 <a id="notify-history-menu-link" href="#" class="dropdown-toggle btn btn-default btn-sm navbar-btn" data-toggle="dropdown" title="${ec.l10n.localize("Notify History")}">
                     <i class="fa fa-exclamation-circle"></i></a>
                 <ul class="dropdown-menu" @click.prevent="stopProp">
-                    <li v-for="histItem in notifyHistoryList">
+                    <li v-for="(histItem, histIndex) in notifyHistoryList" :key="histIndex">
                         <#-- NOTE: don't use v-html for histItem.message, may contain input repeated back so need to encode for security (make sure scripts not run, etc) -->
                         <div :class="'alert alert-' + histItem.type" @click.prevent="stopProp" role="alert"><strong>{{histItem.time}}</strong> <span>{{histItem.message}}</span></div>
                     </li>
@@ -104,14 +104,14 @@ along with this software (see the LICENSE.md file). If not, see
             <component :is="qzVue" ref="qzVue"></component>
 
             <#-- nav plugins -->
-            <template v-for="navPlugin in navPlugins"><component :is="navPlugin"></component></template>
+            <template v-for="(navPlugin, navPluginIndex) in navPlugins" :key="navPluginIndex"><component :is="navPlugin"></component></template>
 
             <#-- screen documentation/help -->
             <div id="document-menu" class="nav navbar-right dropdown" :class="{hidden:!documentMenuList.length}">
                 <a id="document-menu-link" href="#" class="dropdown-toggle btn btn-info btn-sm navbar-btn" data-toggle="dropdown" title="Documentation">
                     <i class="fa fa-question-circle"></i></a>
                 <ul class="dropdown-menu">
-                    <li v-for="screenDoc in documentMenuList">
+                    <li v-for="screenDoc in documentMenuList" :key="screenDoc.index">
                         <a href="#" @click.prevent="showScreenDocDialog(screenDoc.index)">{{screenDoc.title}}</a></li>
                 </ul>
             </div>

@@ -101,9 +101,12 @@ along with this software (see the LICENSE.md file). If not, see
                     def subscreenList = currentScreenDefinition?.getSubscreensItemsSorted()
                     for (subscreen in subscreenList) {
                         if (subscreen.location == null) { continue }
-                        subscreenDefinition = ec.screen.getScreenDefinition(subscreen.location)
-
-                        pathList = getSubscreenPaths(subscreenDefinition,pathList,(basePath+currentScreenDefinition.getScreenName() == '/webroot' ? basePath : basePath+currentScreenDefinition.getScreenName()+'/'))
+                        try {
+                            subscreenDefinition = ec.screen.getScreenDefinition(subscreen.location)
+                            pathList = getSubscreenPaths(subscreenDefinition,pathList,(basePath+currentScreenDefinition.getScreenName() == '/webroot' ? basePath : basePath+currentScreenDefinition.getScreenName()+'/'))
+                        } catch (Exception e) {
+                            ec.logger.warn("Skipping broken screen definition during routes.js generation: " + subscreen.location)
+                        }
                     }
                     return pathList + [basePath+currentScreenDefinition.getScreenName() == '/webroot' ? basePath : basePath+currentScreenDefinition.getScreenName()]
                 }
@@ -114,7 +117,8 @@ along with this software (see the LICENSE.md file). If not, see
                     pathList.add([path:pathName, component:''])
                 }
 
-                template = ec.resource.template('component://webroot/template/screen/routes.js.ftl', '.ftl')
+                // Use the resource facade to find the template, allowing for overrides
+                template = ec.resource.template('component://moqui-ai/template/screen/routes.js.ftl', '.ftl')
                 ec.web.sendTextResponse(template, "application/javascript", "routes.js")
             ]]></script>
         </actions>
@@ -127,12 +131,12 @@ along with this software (see the LICENSE.md file). If not, see
     </subscreens>
     <widgets>
         <render-mode>
-            <text type="html" location="component://webroot/screen/includes/Header.html.ftl" no-boundary-comment="true"/>
+            <text type="html,qvt2" location="component://webroot/screen/includes/Header.html.ftl" no-boundary-comment="true"/>
             <text type="xsl-fo" location="component://webroot/screen/includes/Header.xsl-fo.ftl" no-boundary-comment="true"/>
         </render-mode>
         <render-mode><text template="true">${sri.renderSubscreen()}</text></render-mode>
         <render-mode>
-            <text type="html" location="component://webroot/screen/includes/Footer.html.ftl"/>
+            <text type="html,qvt2" location="component://webroot/screen/includes/Footer.html.ftl"/>
             <text type="xsl-fo"><![CDATA[${sri.getAfterScreenWriterText()}</fo:flow></fo:page-sequence></fo:root>]]></text>
         </render-mode>
     </widgets>

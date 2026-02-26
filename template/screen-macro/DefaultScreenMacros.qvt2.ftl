@@ -14,7 +14,7 @@ along with this software (see the LICENSE.md file). If not, see
 <#-- NOTE: no empty lines before the first #macro otherwise FTL outputs empty lines -->
 <#include "DefaultScreenMacros.any.ftl"/>
 <#macro getQuasarColor bootstrapColor><#if bootstrapColor == "success">positive<#elseif bootstrapColor == "danger">negative<#elseif bootstrapColor == "default"><#else>${bootstrapColor}</#if></#macro>
-<#macro @element><p>=== Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
+<#macro @element><p>=== DEBUG: Doing nothing for element ${.node?node_name}, not yet implemented. ===</p></#macro>
 
 <#macro screen><#recurse></#macro>
 <#macro widgets><#t>
@@ -29,10 +29,10 @@ along with this software (see the LICENSE.md file). If not, see
 </#macro>
 
 <#-- ================ Subscreens ================ -->
-<#macro "subscreens-menu"><#if hideNav! != "true">
+<#macro "subscreens-menu" pathIndex="-1"><#if hideNav! != "true">
     <#if .node["@type"]! == "popup"><#-- NOTE: popup menus no longer handled here, how handled dynamically in navbar.html.ftl -->
     <#-- default to type=tab -->
-    <#else><m-subscreens-tabs></m-subscreens-tabs></#if>
+    <#else><m-subscreens-tabs :passed-path-index="${pathIndex}"></m-subscreens-tabs></#if>
 </#if></#macro>
 <#macro "subscreens-active"><m-subscreens-active></m-subscreens-active></#macro>
 <#macro "subscreens-panel">
@@ -182,7 +182,7 @@ ${sri.renderSectionInclude(.node)}
             <q-btn disabled dense outline no-caps icon="open_in_new" label="${buttonText}" color="<@getQuasarColor ec.getResource().expandNoL10n(.node["@type"]!"primary", "")/>" class="${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}"></q-btn>
         <#else>
             <m-dynamic-dialog id="${ddDivId}" url="${urlInstance.urlWithParams}" color="<@getQuasarColor ec.getResource().expandNoL10n(.node["@type"]!"primary", "")/>" width="${.node["@width"]!""}"
-                    button-text="${buttonText}" button-class="${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}" title="${title}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></m-dynamic-dialog>
+                    button-text="${buttonText}" button-class="${ec.getResource().expandNoL10n(.node["@button-style"]!"", "")}" title="${title}" icon="${iconClass}"<#if _openDialog! == ddDivId> :openDialog="true"</#if>></m-dynamic-dialog>
         </#if>
         <#-- used to use afterFormText for m-dynamic-dialog inside another form, needed now?
         <#assign afterFormText>
@@ -2251,3 +2251,4 @@ a => A, d => D, y => Y
         <#t>${sri.getFieldValueString(widgetNode)}
     </#if><#t>
 </#macro>
+

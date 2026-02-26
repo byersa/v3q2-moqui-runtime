@@ -9,6 +9,7 @@
     <default-property name="webapp_allow_origins" value="*"/>
     <default-property name="entity_empty_db_load" value="all"/>
     <default-property name="entity_lock_track" value="true"/>
+    <default-property name="default_time_zone" value="America/Denver"/>
 
     <!-- minimal overrides for testing on local mysql8:
     <default-property name="entity_ds_db_conf" value="mysql8"/>
@@ -79,11 +80,16 @@
     <screen-facade boundary-comments="true">
         <!-- The default conf file has a macro location defined for html already, but this is an example of how to
             refer to a file to override the default macros. -->
-        <screen-text-output type="html" mime-type="text/html" macro-template-location="template/screen-macro/ScreenHtmlMacros.ftl"/>
+        <!-- <screen-text-output type="html" mime-type="text/html" macro-template-location="component://huddle/template/HuddleScreenMacros.qvt2.ftl"/> -->
+        <screen-text-output type="qvt2" mime-type="text/html" always-standalone="false" macro-template-location="component://moqui-ai/template/MoquiAiScreenMacros.qvt2.ftl"/>
     </screen-facade>
 
-    <entity-facade query-stats="true">
-        <!-- add datasource elements here to configure databases -->
+    <entity-facade>
+        <datasource group-name="transactional" database-conf-name="postgres" schema-name="public" startup-add-missing="true" default-timezone="America/Denver" >
+            <inline-jdbc pool-maxsize="50">
+                <xa-properties serverName="${entity_ds_host}" portNumber="${entity_ds_port}" databaseName="${entity_ds_database}" user="${entity_ds_user}" password="${entity_ds_password}"/>
+            </inline-jdbc>
+        </datasource>
     </entity-facade>
 
     <repository-list>

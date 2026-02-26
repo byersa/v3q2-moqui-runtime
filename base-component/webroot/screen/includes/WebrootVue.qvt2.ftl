@@ -97,16 +97,14 @@ along with this software (see the LICENSE.md file). If not, see
             <q-btn dense flat icon="notifications">
                 <q-tooltip>${ec.l10n.localize("Notify History")}</q-tooltip>
                 <q-menu><q-list dense style="min-width: 300px">
-                    <q-item v-for="histItem in notifyHistoryList"><q-item-section>
-                        <#-- NOTE: don't use v-html for histItem.message, may contain input repeated back so need to encode for security (make sure scripts not run, etc) -->
-                        <q-banner dense rounded class="text-white" :class="'bg-' + getQuasarColor(histItem.type)">
-                            <#-- TODO: histItem.icon see https://v1.quasar.dev/vue-components/banner-->
+                    <q-item v-for="(histItem, histItemIndex) in notifyHistoryList" :key="histItemIndex" class="q-pa-xs">
+                        <q-banner dense rounded class="text-white full-width" :class="'bg-' + getQuasarColor(histItem.type)">
                             <strong>{{histItem.time}}</strong> <span>{{histItem.message}}</span>
                             <template v-if="histItem.link != null" v-slot:action>
                                 <q-btn :to="histItem.link" flat color="white" label="View"></q-btn>
                             </template>
                         </q-banner>
-                    </q-item-section></q-item>
+                    </q-item>
                 </q-list></q-menu>
             </q-btn>
 
